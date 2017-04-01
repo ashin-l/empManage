@@ -11,7 +11,7 @@ if ($dbo->connect_error) {
     die($dbo->connect_error);
 }
 $dbo->query("set names utf8");
-$pageSize = 3;
+$pageSize = 10;
 $rowCount = 0;
 $pageNow = 1;
 if (!empty($_GET['pageNow'])) {
@@ -39,9 +39,20 @@ while ($row = $res2->fetch_row()) {
 }
 echo "<h1>雇员信息列表</h1>";
 echo "</table>";
-for ($i = 1; $i <= $pageCount; ++$i) {
-    echo "<a href='empList.php?pageNow=$i'>$i</a>&nbsp;";
+if ($pageNow > 1) {
+    $prePage = $pageNow -1;
+    echo "<a href='empList.php?pageNow=$prePage'>上一页</a>&nbsp;";
 }
+if ($pageNow < $pageCount) {
+    $nextPage = $pageNow +1;
+    echo "<a href='empList.php?pageNow=$nextPage'>下一页</a>&nbsp;";
+}
+echo "当前页{$pageNow}/共{$pageCount}页";
+echo "<br/><br/>";
+
+//for ($i = 1; $i <= $pageCount; ++$i) {
+//    echo "<a href='empList.php?pageNow=$i'>$i</a>&nbsp;";
+//}
 $res2->free();
 $dbo->close();
 
