@@ -6,30 +6,21 @@
 </head>
 <?php
 
-$dbo = new MySQLi('localhost', 'root', '111', 'empmanage');
-if ($dbo->connect_error) {
-    die($dbo->connect_error);
-}
-$dbo->query("set names utf8");
-$pageSize = 10;
-$rowCount = 0;
-$pageNow = 1;
+require_once 'EmpService.class.php';
+require_once 'DevidePage.class.php';
+
+$devidePage = new DevidePage();
+$devidePage->pageSize = 10;
+$devidePage->pageNow = 1;
+$pageWhole = 10;
 if (!empty($_GET['pageNow'])) {
-    $pageNow = $_GET['pageNow'];
+    $devidePage->pageNow = $_GET['pageNow'];
 }
-$sql = "select count(id) from emp";
-$res1 = $dbo->query($sql);
-if ($row = $res1->fetch_row()) {
-    $rowCount = $row[0];
-}
-$res1->free();
-$pageCount = ceil($rowCount / $pageSize);
-$start = ($pageNow-1) * $pageSize;
-$sql = "select * from emp limit $start,$pageSize";
-$res2 = $dbo->query($sql);
+$empService = new EmpService();
+$empService->getDevidePage($devidePage);
 echo "<table width='700px' border='1px' bordercolor='green' cellspacing=0>";
 echo "<tr><th>id</th><th>name</th><th>grade</th><th>email</th><th>salary</th><th colspan=2>操作</th></tr>";
-while ($row = $res2->fetch_row()) {
+foreach ($devidePage->resArray as $row) {
     echo "<tr>";
     foreach ($row as $val) {
         echo "<td>". $val . "</td>";
@@ -37,24 +28,44 @@ while ($row = $res2->fetch_row()) {
     echo "<td><a href='#'>修改</a></td>";
     echo "<td><a href='#'>删除</a></td></tr>";
 }
+//for ($i = 0; $i != count($res); ++$i) {
+//    $row = $res[$i];
+//    echo "<tr>";
+//    foreach ($row as $val) {
+//        echo "<td>". $val . "</td>";
+//    }
+//    echo "<td><a href='#'>修改</a></td>";
+//    echo "<td><a href='#'>删除</a></td></tr>";
+//}
 echo "<h1>雇员信息列表</h1>";
 echo "</table>";
-if ($pageNow > 1) {
-    $prePage = $pageNow -1;
+if ($devidePage->pageNow > 1) {
+    $prePage = $devidePage->pageNow -1;
     echo "<a href='empList.php?pageNow=$prePage'>上一页</a>&nbsp;";
 }
-if ($pageNow < $pageCount) {
-    $nextPage = $pageNow +1;
-    echo "<a href='empList.php?pageNow=$nextPage'>下一页</a>&nbsp;";
+$start = floor(($devidePage->pageNow-1)/10) * 10 + 1;
+if ($devidePage->pageNow > $pageWhole) {
+    $preStart = $start - 1;
+    echo "<a href='empList.php?pageNow=$preStart'><<</a>&nbsp;";
 }
-echo "当前页{$pageNow}/共{$pageCount}页";
+if (($devidePage->pageCount-$start) < $pageWhole) {
+    for (; $start <= $devidePage->pageCount; ++$start) {
+        echo "<a href='empList.php?pageNow=$start'>[$start]</a>";
+    }
+} else {
+    for ($i = 0; $i != $pageWhole; ++$i) {
+        echo "<a href='empList.php?pageNow=$start'>[$start]</a>";
+        ++$start;
+    }
+    echo "&nbsp;<a href='empList.php?pageNow=$start'>>></a>";
+}
+if ($devidePage->pageNow < $devidePage->pageCount) {
+    $nextPage = $devidePage->pageNow +1;
+    echo "&nbsp;<a href='empList.php?pageNow=$nextPage'>下一页</a>&nbsp;";
+}
+echo "当前页{$devidePage->pageNow}/共{$devidePage->pageCount}页";
 echo "<br/><br/>";
-
-//for ($i = 1; $i <= $pageCount; ++$i) {
-//    echo "<a href='empList.php?pageNow=$i'>$i</a>&nbsp;";
-//}
-$res2->free();
-$dbo->close();
+echo "<a href='login.php'>返回登陆页</a>";
 
 ?>
 </html>
